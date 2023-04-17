@@ -14,6 +14,11 @@ const todoSlice = createSlice({
                 title: action.payload.title,
                 completed: false,
             }
+            state.push(newTodo);        
         }
     }
 })
+
+export const { addTodo } = todoSlice.actions;
+
+export default todoSlice.reducer;
