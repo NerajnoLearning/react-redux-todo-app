@@ -1,4 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
+const getTodosAsync = createAsyncThunk(
+        'todos/getTodosAsync', 
+        async () => {
+            const response = await fetch('http://localhost:5500/todos');
+            const todos = await response.json();
+            return {todos}
+        })
 
 const todoSlice = createSlice({
     name: "todos",
