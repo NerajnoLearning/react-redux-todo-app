@@ -1,12 +1,56 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const getTodosAsync = createAsyncThunk(
+export const getTodosAsync = createAsyncThunk(
         'todos/getTodosAsync', 
         async () => {
             const response = await fetch('http://localhost:5500/todos');
             const todos = await response.json();
             return {todos}
         })
+export const addTodoAsync = createAsyncThunk(
+    'todos/addTodoAsync', 
+    async (payload) => {
+        const response = await fetch('http://localhost:5500/todos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        if(response.ok){
+            const todo = await response.json();
+            return {todo};
+        }
+    });
+
+export const deleteTodoAsync = createAsyncThunk(
+    'todos/deleteTodoAsync',
+    async (payload) => {
+        const response = await fetch(`http://localhost:5500/todos/${payload.id}`, {
+            method: 'DELETE',
+        });
+        if(response.ok){
+            return {id: payload.id};
+        }
+    }
+);
+
+export const toggleCompleteAsync = createAsyncThunk(
+    'todos/toggleCompleteAsync',
+    async (payload) => {
+        const response = await fetch(`http://localhost:5500/todos/${payload.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ completed: payload.completed   }),
+        });
+        if(response.ok){
+            const todo = await response.json();
+            return {id: todo, completed: todo.completed };
+        }
+    }
+); 
 
 const todoSlice = createSlice({
     name: "todos",
@@ -32,7 +76,29 @@ const todoSlice = createSlice({
         },
         deleteTodo: (state, action) => {
             return state.filter((todo) => todo.id !== action.payload.id);
+        },
+    },
+    extraReducers: {
+        [getTodosAsync.pending]: (state, action) => {
+            console.log('fetching data...');
+        },
+        [getTodosAsync.fulfilled]: (state, action) => {
+            console.log('fetching data successfully');
+            return action.payload.todos;
+        },
+        [addTodoAsync.fulfilled]: (state, action) => {
+            state.push(action.payload.todo);
+        },
+        [toggleCompleteAsync.fulfilled]: (state, action) => {
+            const index = state.findIndex(
+                (todo) => todo.id === action.payload.id
+            );
+            state[index].completed = action.payload.completed;
+        },
+        [deleteTodoAsync.fulfilled]: (state, action) => {
+            return state.filter((todo) => todo.id !== action.payload.id);
         }
+
     }
 })
 
